@@ -1,18 +1,17 @@
 const express = require('express');
 const router = express.Router(); 
-const Order = require('../models/order'); 
+const Order = require('../models/order');
 
 
-router.post('/orders', async (req, res) => {
+router.post('/', async (req, res) => {
+    console.log(req.body);
     try {
         const { customerName, products, total, status } = req.body;
         if (!customerName || !products || !total || !status) {
             return res.status(400).json({ message: 'Tous les champs sont obligatoires' });
         }
 
-        const newOrder = new Order({
-            customerName, products, total, status
-        });
+        const newOrder = new Order(req.body);
         await newOrder.save();
         res.status(201).json(newOrder);
     } catch (err) {
@@ -21,9 +20,9 @@ router.post('/orders', async (req, res) => {
 });
 
 
-router.get('/orders', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        const orders = await Order.find(); 
+        const orders = await Order.find();
         if (!orders.length) {
             return res.status(404).json({ message: 'Aucune commande trouvée' });
         }
@@ -34,7 +33,7 @@ router.get('/orders', async (req, res) => {
 });
 
 
-router.put('/orders/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
     try {
         const { status } = req.body;
         const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -45,16 +44,16 @@ router.put('/orders/:id', async (req, res) => {
 
         const updatedOrder = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
         if (!updatedOrder) {
-            return res.status(404).json({ error: 'Commande non trouvée' });
+            return res.status(404).json({ message: 'Commande non trouvée' });
         }
-        res.status(200).json(updatedOrder); 
+        res.status(200).json(updatedOrder);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
 
-router.delete('/orders/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
         const deletedOrder = await Order.findByIdAndDelete(req.params.id);
         if (!deletedOrder) {
